@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: extblock-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5433/extblock
+    username: extblock
+    password: extblock
+
+app:
+  cors:
+    allowed-origins: http://localhost:5173
