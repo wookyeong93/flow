@@ -27,7 +27,7 @@ public class FixedExtensionService {
      */
     @Transactional(readOnly = true)
     public List<FixedExtensionResponse> getAll() {
-        return fixedExtensionRepository.findAll().stream()
+        return fixedExtensionRepository.findAllByOrderByIdAsc().stream()
                 .map(FixedExtensionResponse::from)
                 .toList();
     }
