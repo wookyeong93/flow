@@ -53,7 +53,7 @@ public class ExtensionController {
      */
     @PatchMapping("/fixed/{id}")
     public FixedExtensionResponse updateFixedExtension(
-            @PathVariable @Positive Long id,
+            @PathVariable("id") @Positive Long id,
             @Valid @RequestBody FixedExtensionUpdateRequest request) {
         return fixedExtensionService.updateChecked(id, request.checked());
     }
@@ -77,7 +77,7 @@ public class ExtensionController {
      */
     @DeleteMapping("/custom/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCustomExtension(@PathVariable @Positive Long id) {
+    public void deleteCustomExtension(@PathVariable("id") @Positive Long id) {
         customExtensionService.delete(id);
     }
 }
