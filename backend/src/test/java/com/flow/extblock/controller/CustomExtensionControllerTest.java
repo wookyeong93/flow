@@ -151,6 +151,17 @@ class CustomExtensionControllerTest {
     }
 
     @Test
+    @DisplayName("벨리데이션 오류값: 숫자로 시작하면 거부")
+    void create_startsWithDigit_rejected() throws Exception {
+        for (String invalid : List.of("1abc", "9zip")) {
+            mockMvc.perform(post("/api/extensions/custom")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(createRequestJson(invalid)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
     @DisplayName("벨리데이션 오류값: 콤마/점/공백 등 다중 확장자 형태는 거부")
     void create_disallowedCharacters_rejected() throws Exception {
         for (String invalid : List.of("exe,js", "e.xe", "ex e")) {
