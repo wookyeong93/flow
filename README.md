@@ -1,5 +1,9 @@
 # 플로우 SaaS 개발자 부문 과제 
 
+## 배포 주소
+- https://flow-vfb0.onrender.com/
+- 서버가 무료 티어 및 리전(미국 동부)로 설정되어 있어 초기 API 호출 및 화면 렌더링이 느릴 수 있습니다.
+
 ## 과제 목표 
 - 파일 확장자 차단 프로그램 
 
@@ -23,4 +27,25 @@
 - 커스텀 확장자 등록시 고정 확장자와 , 커스텀 확장자에 중복 등록 되지 않도록 차단 
     - 이미 존재하는 데이터가 있으므로 중복 저장하여 불필요한 데이터가 생기지 않도록 고려함 
     - 백엔드와 DB 모두 제약을 주어 이중 보완 처리
+
+## 설계 결정 및 트레이드오프
+- 각 항목의 배경/검토 과정/효과 등 상세 내용은 `CLAUDE.md`에 정리되어 있으며, 아래는 핵심 결정만 요약한 것입니다.
+
+### 백엔드
+- 이름 형식 검증: DB 정규식 CHECK 대신 앱 계층 `@Pattern`으로 처리 (ANSI SQL 이식성 확보), 첫 글자는 영문으로 강제(숫자로 시작하는 확장자는 실존/실행 불가능하므로)
+- 대소문자 처리: 입력을 거부하지 않고 소문자로 정규화하여 저장
+- 테이블 구조: 고정/커스텀 확장자 2테이블 유지, 교차 중복은 서비스 레이어에서만 체크
+- 커스텀 확장자 200개 제한: `pg_advisory_xact_lock`으로 동시 요청 시 count 체크~등록 구간을 직렬화해 race condition 방지
+- 고정 확장자 체크 상태 변경: PATCH(최종 상태값 전달) + 락 없이 last-write-wins로 처리
+- 에러 코드/예외 구조: `ErrorCode` 인터페이스로 공통/도메인 에러 분리, `BusinessException`은 추상 클래스로 확장 가능하게 유지
+- 서버 상태 확인: Actuator 도입 없이 경량 커스텀 `GET /api/health` 엔드포인트로 프론트 초기 로드 시 연결 확인
+- CORS: 무료 티어 + 원거리 리전 배포로 인한 preflight 반복 문제는 `maxAge(3600)`으로 캐싱 개선(PATCH/DELETE는 스펙상 preflight 자체는 생략 불가)
+- 테스트: Testcontainers 도입 없이 로컬 Postgres 재사용
+
+### 프론트엔드
+- API 통신: axios 없이 네이티브 fetch + 얇은 공통 에러 처리 wrapper(`api/client.ts`)
+- API 모듈 구조: 공통 wrapper + 도메인별 `api/xxx.ts` 파일로 분리해 향후 도메인 추가에 대비
+- 공통 컴포넌트화: `Checkbox`/`InputBox`/`Badge`/`Modal`을 `components/common/`에 분리해 재사용성 확보
+- 스타일링: Tailwind CSS v4(`@tailwindcss/vite`)를 별도 config 파일 없이 세팅
+- 커스텀 확장자 표시: 뱃지(pill) + 카운터(N/200)로 표시, 개별 뱃지에서 X로 삭제
 
